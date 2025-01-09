@@ -1,16 +1,17 @@
 #pragma once
 #include <chrono>
 #include <iostream>
+#include <ostream>
+
+enum TimeType { min, mili, micro };
 
 // template to create a chrono clock timer
 // - Clock = high_resolution_clock or steady_clock or system_clock
-template <typename Clock>
+template <typename Clock = std::chrono::steady_clock, typename Type = std::chrono::milliseconds>
 class ChronoClock
 {
-	using TimeType = typename Clock::time_point; // setting time
-
-	TimeType start; // clock start time
-	TimeType end; //  clock end time
+	Clock::time_point start; // clock start time
+	Clock::time_point end; //  clock end time
 public:
 	bool enable; //enables or diables clock
 
@@ -23,23 +24,35 @@ public:
 	void Start()
 	{
 		if (enable)
-			start = std::chrono::high_resolution_clock::now();
+			start = Clock::now();
 	}
 
 	// stop clock if enabled
 	void Stop()
 	{
 		if (enable)
-			end = std::chrono::high_resolution_clock::now();
+			end = Clock::now();
 	}
 
-	// print clock time in miliseconds if enabled
-	void Print() const
+	// print time if enabled
+	void Print()
 	{
 		if (enable)
 		{
-			auto diff = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-			std::cout << "Time : " << diff.count() << " ms" << std::endl;
+			auto diff = std::chrono::duration_cast<Type>(end - start);
+			std::cout << "Time : " << diff.count() << std::endl;
 		}
+	}
+
+	// output operator overload
+	friend std::ostream& operator<<(std::ostream& _os, const ChronoClock& _timer)
+	{
+		if (_timer.enable)
+		{
+			auto diff = std::chrono::duration_cast<Type>(_timer.end - _timer.start);
+			_os << diff.count();
+		}
+
+		return _os;
 	}
 };
