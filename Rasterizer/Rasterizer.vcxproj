@@ -147,6 +147,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="ChronoTimer.h" />
     <ClInclude Include="colour.h" />
     <ClInclude Include="GamesEngineeringBase.h" />
     <ClInclude Include="Includes.h" />
