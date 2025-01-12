@@ -19,7 +19,7 @@ public:
 
     // Constructor initializes the canvas, Z-buffer, and perspective projection matrix.
     Renderer() {
-        canvas.create(1024, 768, "Raster");  // Create a canvas with specified dimensions and title
+        canvas.create(1024, 768, "Raster", 1.f, false, 200, 100);  // Create a canvas with specified dimensions and title
         zbuffer.create(1024, 768);           // Initialize the Z-buffer with the same dimensions
         perspective = matrix::makePerspective(fov, aspect, n, f); // Set up the perspective matrix
     }

@@ -6,7 +6,7 @@
 #include "GamesEngineeringBase.h" // Include the GamesEngineeringBase header
 #include <algorithm>
 
-#include "ChronoTimer.h"
+#include "ChronoClock.h"
 #include <cmath>
 #include "matrix.h"
 #include "colour.h"

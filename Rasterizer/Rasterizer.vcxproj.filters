@@ -51,7 +51,10 @@
     <ClInclude Include="utilities.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ChronoTimer.h">
+    <ClInclude Include="ChronoClock.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="avx2.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
