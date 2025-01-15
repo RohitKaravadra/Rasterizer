@@ -30,6 +30,16 @@ public:
 		}
 	}
 
+	float& operator[](const int& i)
+	{
+		return a[i];
+	}
+
+	float& operator()(const int& i1, const int& i2)
+	{
+		return m[i1][i2];
+	}
+
 	// Multiply the matrix by a 4D vector
 	// Input Variables:
 	// - v: vec4 object to multiply with the matrix

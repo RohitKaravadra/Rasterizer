@@ -3,8 +3,6 @@
 #include <iostream>
 #include <ostream>
 
-enum TimeType { min, mili, micro };
-
 // template to create a chrono clock timer
 // - Clock = high_resolution_clock or steady_clock or system_clock
 template <typename Clock = std::chrono::steady_clock, typename Type = std::milli>
@@ -49,7 +47,7 @@ public:
 	{
 		if (_timer.enable)
 		{
-			auto diff = std::chrono::duration_cast<Type>(_timer.end - _timer.start);
+			auto diff = std::chrono::duration<double,Type>(_timer.end - _timer.start);
 			_os << diff.count();
 		}
 

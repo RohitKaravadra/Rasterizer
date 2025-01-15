@@ -61,8 +61,11 @@ void scene2() {
 
         if (renderer.canvas.keyPressed(VK_ESCAPE)) break;
 
+        // update view projection matrix before rendering
+        renderer.updateVP(camera);
+        // render all objects in a scene
         for (auto& m : scene)
-            render(renderer, m, camera, L);
+            render(renderer, m, L);
         renderer.present();
     }
 

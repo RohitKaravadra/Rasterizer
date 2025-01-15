@@ -12,14 +12,16 @@ class Renderer {
     float aspect = 4.0f / 3.0f;        // Aspect ratio of the canvas (width/height)
     float n = 0.1f;                    // Near clipping plane distance
     float f = 100.0f;                  // Far clipping plane distance
+
+    matrix perspective;                      // Perspective Projection matrix
 public:
     Zbuffer<float> zbuffer;                  // Z-buffer for depth management
     GamesEngineeringBase::Window canvas;     // Canvas for rendering the scene
-    matrix perspective;                      // Perspective projection matrix
+    matrix vp;                               // view projection matrix
 
     // Constructor initializes the canvas, Z-buffer, and perspective projection matrix.
     Renderer() {
-        canvas.create(1024, 768, "Raster", 1.f, false, 200, 100);  // Create a canvas with specified dimensions and title
+        canvas.create(1024, 768, "Raster");  // Create a canvas with specified dimensions and title
         zbuffer.create(1024, 768);           // Initialize the Z-buffer with the same dimensions
         perspective = matrix::makePerspective(fov, aspect, n, f); // Set up the perspective matrix
     }
@@ -33,5 +35,10 @@ public:
     // Presents the current canvas frame to the display.
     void present() {
         canvas.present(); // Display the rendered frame
+    }
+
+    // update view projection matrix
+    void updateVP(const matrix& view) {
+        vp = perspective * view;
     }
 };

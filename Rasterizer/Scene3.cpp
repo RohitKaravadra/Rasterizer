@@ -5,7 +5,7 @@ static ChronoClock timer;
 
 // Test scene function to demonstrate rendering with user-controlled transformations
 // No input variables
-void sceneTest() {
+void Scene3() {
 	Renderer renderer;
 	// create light source {direction, diffuse intensity, ambient intensity}
 	Light L{ vec4(0.f, 1.f, 1.f, 0.f), colour(1.0f, 1.0f, 1.0f), colour(0.1f, 0.1f, 0.1f) };
@@ -54,9 +54,11 @@ void sceneTest() {
 		// Apply transformations to the camera
 		camera = matrix::makeTranslation(x, y, z);
 
+		// update view projection matrix before rendering
+		renderer.updateVP(camera);
 		// Render each object in the scene
 		for (auto& m : scene)
-			render(renderer, &m, camera, L);
+			render(renderer, &m, L);
 
 		renderer.present(); // Display the rendered frame
 

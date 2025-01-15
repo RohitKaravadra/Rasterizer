@@ -44,11 +44,9 @@ inline void ProcessTriangle(const Mesh& mesh, int i, const matrix& p, Renderer& 
 // - mesh: Pointer to the Mesh object containing vertices and triangles to render.
 // - camera: Matrix representing the camera's transformation.
 // - L: Light object representing the lighting parameters.
-static void render(Renderer& renderer, Mesh* mesh, matrix& camera, Light& L) {
+static void render(Renderer& renderer, Mesh* mesh, Light& L) {
 	// Combine perspective, camera, and world transformations for the mesh
-	matrix p = renderer.perspective * camera * mesh->world;
-	float canWidth = static_cast<float>(renderer.canvas.getWidth());
-	float canHeight = static_cast<float>(renderer.canvas.getHeight());
+	matrix p = renderer.vp * mesh->world;
 
 	// Iterate through all triangles in the mesh
 	//int i = 0;
@@ -71,9 +69,9 @@ static void render(Renderer& renderer, Mesh* mesh, matrix& camera, Light& L) {
 			t[i].normal.normalise();
 	
 			// Map normalized device coordinates to screen space
-			t[i].p[0] = (t[i].p[0] + 1.f) * 0.5f * canWidth;
-			t[i].p[1] = (t[i].p[1] + 1.f) * 0.5f * canHeight;
-			t[i].p[1] = canHeight - t[i].p[1]; // Invert y-axis
+			t[i].p[0] = (t[i].p[0] + 1.f) * 0.5f * renderer.canvas.getWidth();
+			t[i].p[1] = (t[i].p[1] + 1.f) * 0.5f * renderer.canvas.getHeight();
+			t[i].p[1] = renderer.canvas.getHeight() - t[i].p[1]; // Invert y-axis
 	
 			// Copy vertex colours
 			t[i].rgb = mesh->vertices[ind.v[i]].rgb;
