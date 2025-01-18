@@ -1,20 +1,18 @@
 #include "Includes.h"
 
 // debug timer
-static ChronoClock timer;
+static ChronoTimer timer;
 
 // Test scene function to demonstrate rendering with user-controlled transformations
 // No input variables
-void Scene3() {
+void scene3() {
 	Renderer renderer;
 	// create light source {direction, diffuse intensity, ambient intensity}
-	Light L{ vec4(0.f, 1.f, 1.f, 0.f), colour(1.0f, 1.0f, 1.0f), colour(0.1f, 0.1f, 0.1f) };
+	Light L{ vec4(0.f, 1.f, 1.f, 0.f), color(1.0f, 1.0f, 1.0f), color(0.1f, 0.1f, 0.1f) };
 	// camera is just a matrix
 	matrix camera = matrix::makeIdentity(); // Initialize the camera with identity matrix
 
-	bool running = true; // Main loop control variable
-
-	std::vector<Mesh> scene; // Vector to store scene objects
+	std::vector<Mesh*> scene; // Vector to store scene objects
 
 	// Create a sphere and a rectangle mesh
 	int totalX = 10, totalY = 10, totalZ = 5, space = 2;
@@ -25,8 +23,9 @@ void Scene3() {
 			for (int k = 0; k < totalZ; k++)
 			{
 				//Mesh mesh = Mesh::makeCube(2);
-				Mesh mesh = Mesh::makeSphere(1.f, 10, 10);
-				mesh.world = matrix::makeTranslation((i - totalX / 2) * space, (j - totalY / 2) * space, -k * space - 4);
+				Mesh* mesh = new Mesh();
+				*mesh = Mesh::makeSphere(1.f, 10, 10);
+				mesh->world = matrix::makeTranslation((i - totalX / 2) * space, (j - totalY / 2) * space, -k * space - 4);
 				scene.push_back(mesh);
 			}
 		}
@@ -34,13 +33,15 @@ void Scene3() {
 
 	float x = 0.0f, y = 0.0f, z = -4.0f; // Initial translation parameters
 
+	bool running = true; // Main loop control variable
 	// Main rendering loop
 	while (running) {
 		renderer.canvas.checkInput(); // Handle user input
+		if (renderer.canvas.keyPressed(VK_ESCAPE) || renderer.canvas.IsQuit()) break;
+
 		renderer.clear(); // Clear the canvas for the next frame
 
-		timer.enable = renderer.canvas.keyPressed(VK_SPACE);
-		timer.Start();
+		//timer.enable = renderer.canvas.keyPressed(VK_SPACE);
 
 		// Handle user inputs for transformations
 		if (renderer.canvas.keyPressed(VK_ESCAPE)) break;
@@ -57,12 +58,17 @@ void Scene3() {
 		// update view projection matrix before rendering
 		renderer.updateVP(camera);
 		// Render each object in the scene
-		for (auto& m : scene)
-			render(renderer, &m, L);
+		timer.reset();
+
+		//for (auto& m : scene)
+		//	render(m, renderer, L);
+		
+		renderNew(scene, renderer, L);
+		timer.elapsed();
 
 		renderer.present(); // Display the rendered frame
-
-		timer.Stop();
-		timer.Print();
 	}
+
+	for (auto& m : scene)
+		delete m;
 }

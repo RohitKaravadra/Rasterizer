@@ -5,17 +5,17 @@
 
 // The `colour` class represents an RGB colour with floating-point precision.
 // It provides various utilities for manipulating and converting colours.
-class colour {
+class color {
     union {
         struct {
             float r, g, b; // Red, Green, and Blue components of the colour
         };
         float rgb[3];     // Array representation of the RGB components
     };
-
 public:
+
     // Enum for indexing the RGB components
-    enum Colour { RED = 0, GREEN = 1, BLUE = 2 };
+    enum Color { RED = 0, GREEN = 1, BLUE = 2 };
 
     // Constructor to initialize the colour with specified RGB values.
     // Default values are 0 (black).
@@ -23,7 +23,7 @@ public:
     // - _r: Red component (default 0.0f)
     // - _g: Green component (default 0.0f)
     // - _b: Blue component (default 0.0f)
-    colour(float _r = 0, float _g = 0, float _b = 0) : r(_r), g(_g), b(_b) {}
+    color(float _r = 0, float _g = 0, float _b = 0) : r(_r), g(_g), b(_b) {}
 
     // Sets the RGB components of the colour.
     // Input Variables:
@@ -36,12 +36,12 @@ public:
     // Input Variables:
     // - c: Index of the component (RED, GREEN, or BLUE)
     // Returns a reference to the specified component.
-    float& operator[] (Colour c) { return rgb[c]; }
+    float& operator[] (Color c) { return rgb[c]; }
 
     // Assigns the values of another colour to this one.
     // Input Variables:
     // - c: The source color
-    void operator = (colour c) {
+    void operator = (color c) {
         r = c.r;
         g = c.g;
         b = c.b;
@@ -65,12 +65,21 @@ public:
         cb = static_cast<unsigned char>(std::floor(b * 255));
     }
 
+    // Converts the floating-point RGB values to integer values (0-255).
+    // Output Variables:
+    // - res: an unsigned char array of size 3
+    void toRGB(unsigned char* res) {
+        res[0] = static_cast<unsigned char>(std::floor(r * 255));
+        res[1] = static_cast<unsigned char>(std::floor(g * 255));
+        res[2] = static_cast<unsigned char>(std::floor(b * 255));
+    }
+
     // Scales the RGB components of the colour by a scalar value.
     // Input Variables:
     // - scalar: The scaling factor
     // Returns a new `colour` object with scaled components.
-    colour operator * (const float scalar) {
-        colour c;
+    color operator * (const float scalar) {
+        color c;
         c.r = r * scalar;
         c.g = g * scalar;
         c.b = b * scalar;
@@ -81,8 +90,8 @@ public:
     // Input Variables:
     // - col: The other color to multiply with
     // Returns a new `colour` object with multiplied components.
-    colour operator * (const colour& col) {
-        colour c;
+    color operator * (const color& col) {
+        color c;
         c.r = r * col.r;
         c.g = g * col.g;
         c.b = b * col.b;
@@ -93,8 +102,8 @@ public:
     // Input Variables:
     // - _c: The other colour to add
     // Returns a new `colour` object with added components.
-    colour operator + (const colour& _c) {
-        colour c;
+    color operator + (const color& _c) {
+        color c;
         c.r = r + _c.r;
         c.g = g + _c.g;
         c.b = b + _c.b;

@@ -1,17 +1,15 @@
 
 void scene1();
 void scene2();
-void Scene3();
-void Test();
+void scene3();
 
 // Entry point of the application
 // No input variables
 int main() {
     // Uncomment the desired scene function to run
     //scene1();
-    //scene2();
-    Scene3();
-    //Test();
+    scene2();
+    //scene3();
 
     return 0;
 }

@@ -6,13 +6,14 @@
 #include "vec4.h"
 
 // Matrix class for 4x4 transformation matrices
-class matrix {
-	union {
-		alignas(16) float m[4][4]; // 2D array representation of the matrix
-		alignas(16) float a[16];   // 1D array representation of the matrix for linear access
-	};
+class alignas(16)  matrix {
 
+	union {
+		float m[4][4]; // 2D array representation of the matrix
+		float a[16];   // 1D array representation of the matrix for linear access
+	};
 public:
+
 	// Default constructor initializes the matrix as an identity matrix
 	matrix() {
 		identity();
@@ -40,17 +41,43 @@ public:
 		return m[i1][i2];
 	}
 
-	// Multiply the matrix by a 4D vector
-	// Input Variables:
-	// - v: vec4 object to multiply with the matrix
-	// Returns the resulting transformed vec4
-	vec4 operator * (const vec4& v) const {
+	vec4 mul_point(const vec4& v) const
+	{
 		vec4 result;
 		result[0] = a[0] * v[0] + a[1] * v[1] + a[2] * v[2] + a[3] * v[3];
 		result[1] = a[4] * v[0] + a[5] * v[1] + a[6] * v[2] + a[7] * v[3];
 		result[2] = a[8] * v[0] + a[9] * v[1] + a[10] * v[2] + a[11] * v[3];
 		result[3] = a[12] * v[0] + a[13] * v[1] + a[14] * v[2] + a[15] * v[3];
 		return result;
+	}
+
+	vec4 mul_point_avx(const vec4& v) const {
+		vec4 result;
+
+		// Load the vector `v` into a SIMD register
+		__m128 vec = _mm_loadu_ps(v.v);
+
+		// Perform dot products for each row
+		__m128 res0 = _mm_dp_ps(_mm_loadu_ps(&a[0]), vec, 0xF1);
+		__m128 res1 = _mm_dp_ps(_mm_loadu_ps(&a[4]), vec, 0xF1);
+		__m128 res2 = _mm_dp_ps(_mm_loadu_ps(&a[8]), vec, 0xF1);
+		__m128 res3 = _mm_dp_ps(_mm_loadu_ps(&a[12]), vec, 0xF1);
+
+		// Store results back into the `result` vector
+		result[0] = _mm_cvtss_f32(res0);
+		result[1] = _mm_cvtss_f32(res1);
+		result[2] = _mm_cvtss_f32(res2);
+		result[3] = _mm_cvtss_f32(res3);
+
+		return result;
+	}
+
+	// Multiply the matrix by a 4D vector
+	// Input Variables:
+	// - v: vec4 object to multiply with the matrix
+	// Returns the resulting transformed vec4
+	vec4 operator * (const vec4& v) const {
+		return mul_point(v);
 	}
 
 	matrix mul(const matrix& mx) const
@@ -84,7 +111,7 @@ public:
 		return ret;
 	}
 
-	matrix mul_new(const matrix& mx) const
+	matrix mul_avx(const matrix& mx) const
 	{
 		matrix ret;
 
@@ -92,7 +119,6 @@ public:
 
 		__m128 ra0, ra1, ra2, ra3; // matrix a resistors
 		__m128 rb0, rb1, rb2, rb3; // matrix b resistors
-		__m128 res; // dot procuct resistor
 
 		// load matrix a to resistors
 		ra0 = _mm_load_ps(&a[0]); ra1 = _mm_load_ps(&a[4]);
@@ -103,28 +129,28 @@ public:
 		rb2 = _mm_load_ps(&t.a[8]); rb3 = _mm_load_ps(&t.a[12]);
 
 		// row 0 
-		res = _mm_dp_ps(ra0, rb0, 0xF1); ret.a[0] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra0, rb1, 0xF1); ret.a[1] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra0, rb2, 0xF1); ret.a[2] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra0, rb3, 0xF1); ret.a[3] = _mm_cvtss_f32(res);
+		ret.a[0] = _mm_cvtss_f32(_mm_dp_ps(ra0, rb0, 0xF1));
+		ret.a[1] = _mm_cvtss_f32(_mm_dp_ps(ra0, rb1, 0xF1));
+		ret.a[2] = _mm_cvtss_f32(_mm_dp_ps(ra0, rb2, 0xF1));
+		ret.a[3] = _mm_cvtss_f32(_mm_dp_ps(ra0, rb3, 0xF1));
 
 		// row 1
-		res = _mm_dp_ps(ra1, rb0, 0xF1); ret.a[4] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra1, rb1, 0xF1); ret.a[5] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra1, rb2, 0xF1); ret.a[6] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra1, rb3, 0xF1); ret.a[7] = _mm_cvtss_f32(res);
+		ret.a[4] = _mm_cvtss_f32(_mm_dp_ps(ra1, rb0, 0xF1));
+		ret.a[5] = _mm_cvtss_f32(_mm_dp_ps(ra1, rb1, 0xF1));
+		ret.a[6] = _mm_cvtss_f32(_mm_dp_ps(ra1, rb2, 0xF1));
+		ret.a[7] = _mm_cvtss_f32(_mm_dp_ps(ra1, rb3, 0xF1));
 
 		// row 2
-		res = _mm_dp_ps(ra2, rb0, 0xF1); ret.a[8] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra2, rb1, 0xF1); ret.a[9] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra2, rb2, 0xF1); ret.a[10] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra2, rb3, 0xF1); ret.a[11] = _mm_cvtss_f32(res);
+		ret.a[8] = _mm_cvtss_f32(_mm_dp_ps(ra2, rb0, 0xF1));
+		ret.a[9] = _mm_cvtss_f32(_mm_dp_ps(ra2, rb1, 0xF1));
+		ret.a[10] = _mm_cvtss_f32(_mm_dp_ps(ra2, rb2, 0xF1));
+		ret.a[11] = _mm_cvtss_f32(_mm_dp_ps(ra2, rb3, 0xF1));
 
 		// row 3
-		res = _mm_dp_ps(ra3, rb0, 0xF1); ret.a[12] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra3, rb1, 0xF1); ret.a[13] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra3, rb2, 0xF1); ret.a[14] = _mm_cvtss_f32(res);
-		res = _mm_dp_ps(ra3, rb3, 0xF1); ret.a[15] = _mm_cvtss_f32(res);
+		ret.a[12] = _mm_cvtss_f32(_mm_dp_ps(ra3, rb0, 0xF1));
+		ret.a[13] = _mm_cvtss_f32(_mm_dp_ps(ra3, rb1, 0xF1));
+		ret.a[14] = _mm_cvtss_f32(_mm_dp_ps(ra3, rb2, 0xF1));
+		ret.a[15] = _mm_cvtss_f32(_mm_dp_ps(ra3, rb3, 0xF1));
 
 		return ret;
 	}
@@ -135,8 +161,7 @@ public:
 	// Returns the resulting matrix
 	matrix operator * (const matrix& mx) const
 	{
-		return mul_new(mx);
-		//return mul(mx);
+		return mul(mx);
 	}
 
 	static matrix makeTranspose(const matrix& mat)

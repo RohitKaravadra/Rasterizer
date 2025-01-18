@@ -147,14 +147,14 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="avx2.h" />
-    <ClInclude Include="ChronoClock.h" />
+    <ClInclude Include="ChronoTimer.h" />
     <ClInclude Include="colour.h" />
     <ClInclude Include="GamesEngineeringBase.h" />
     <ClInclude Include="Includes.h" />
     <ClInclude Include="light.h" />
     <ClInclude Include="matrix.h" />
     <ClInclude Include="mesh.h" />
+    <ClInclude Include="render.h" />
     <ClInclude Include="renderer.h" />
     <ClInclude Include="RNG.h" />
     <ClInclude Include="triangle.h" />
@@ -166,7 +166,6 @@
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="Scene1.cpp" />
     <ClCompile Include="Scene2.cpp" />
-    <ClCompile Include="Test.cpp" />
     <ClCompile Include="Scene3.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -75,6 +75,7 @@ namespace GamesEngineeringBase
 		int mousey;                              // Mouse Y-coordinate
 		bool mouseButtons[3];                    // Mouse button states (left, middle, right)
 		int mouseWheel;                          // Mouse wheel value
+		bool quit;								 // to check if window exit is pressed
 		unsigned int width;                      // Window width
 		unsigned int height;                     // Window height
 
@@ -87,7 +88,8 @@ namespace GamesEngineeringBase
 				// On window creation, associate the Window instance with the HWND
 				canvas = reinterpret_cast<Window*>(((LPCREATESTRUCT)lParam)->lpCreateParams);
 				SetWindowLongPtr(hwnd, GWLP_USERDATA, (LONG_PTR)canvas);
-			} else
+			}
+			else
 			{
 				// Retrieve the Window instance associated with the HWND
 				canvas = reinterpret_cast<Window*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
@@ -109,12 +111,10 @@ namespace GamesEngineeringBase
 		{
 			switch (msg)
 			{
-			case WM_DESTROY:
 			case WM_CLOSE:
 			{
 				// Handle window close/destroy messages
-				PostQuitMessage(0);
-				exit(0);
+				quit = true;
 				return 0;
 			}
 			case WM_KEYDOWN:
@@ -246,7 +246,8 @@ namespace GamesEngineeringBase
 				fs.dmFields = DM_BITSPERPEL | DM_PELSWIDTH | DM_PELSHEIGHT;
 				ChangeDisplaySettings(&fs, CDS_FULLSCREEN);
 				style = WS_CLIPSIBLINGS | WS_CLIPCHILDREN | WS_POPUP;
-			} else
+			}
+			else
 			{
 				// Configure windowed mode settings
 				width = window_width;
@@ -441,6 +442,7 @@ namespace GamesEngineeringBase
 			// Initialize input states
 			memset(keys, 0, 256 * sizeof(bool));
 			memset(mouseButtons, 0, 3 * sizeof(bool));
+			quit = false;
 
 			// Initialize COM library for image loading
 			HRESULT comResult;
@@ -450,6 +452,8 @@ namespace GamesEngineeringBase
 		// Processes input messages
 		void checkInput()
 		{
+
+			//quit = false; // reset quit input
 			pumpLoop();
 		}
 
@@ -477,14 +481,20 @@ namespace GamesEngineeringBase
 			image[index + 2] = b;
 		}
 
+		// Draws a pixel at the specified pixel index with the given pixel array
+		void draw(int pixelIndex, unsigned char* pixel)
+		{
+			int index = pixelIndex * 3;
+			memcpy(&image[index], pixel, 3);
+		}
+
 		// Draws a pixel at (x, y) using the color from the provided pixel array
 		void draw(int x, int y, unsigned char* pixel)
 		{
 			int index = ((y * width) + x) * 3;
-			//image[index] = pixel[0];
-			//image[index + 1] = pixel[1];
-			//image[index + 2] = pixel[2];
-			memcpy(&image[index], pixel, 3);
+			image[index] = pixel[0];
+			image[index + 1] = pixel[1];
+			image[index + 2] = pixel[2];
 		}
 
 		// Clears the back buffer by setting all pixels to black
@@ -519,6 +529,8 @@ namespace GamesEngineeringBase
 			// Process any pending messages
 			pumpLoop();
 		}
+
+		bool IsQuit() const { return quit; }
 
 		// Returns the window's width
 		unsigned int getWidth()
@@ -942,7 +954,8 @@ namespace GamesEngineeringBase
 			{
 				// Copy pixels directly if stride matches
 				frame->CopyPixels(0, stride, width * height * channels, data);
-			} else
+			}
+			else
 			{
 				// Handle images with padded stride
 				unsigned char* strideData = new unsigned char[stride * height];
@@ -971,7 +984,7 @@ namespace GamesEngineeringBase
 		// Note, the bounds are handled via clamping
 		unsigned char* at(unsigned int x, unsigned int y)
 		{
-			return &data[((min(y, height - 1) * width) + min(x, width  - 1)) * channels];
+			return &data[((min(y, height - 1) * width) + min(x, width - 1)) * channels];
 		}
 
 		// Returns the alpha value of the pixel at (x, y)
@@ -1076,7 +1089,8 @@ namespace GamesEngineeringBase
 				}
 				lLen = lLen - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
 				lLen = lLen / (32767 - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
-			} else
+			}
+			else
 			{
 				lLen = 0;
 			}
@@ -1097,7 +1111,8 @@ namespace GamesEngineeringBase
 				}
 				rLen = rLen - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
 				rLen = rLen / (32767 - XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE);
-			} else
+			}
+			else
 			{
 				rLen = 0;
 			}
@@ -1200,7 +1215,8 @@ namespace GamesEngineeringBase
 				if (XInputGetState(i, &state) == 0)
 				{
 					controllers[i].activate(i);
-				} else
+				}
+				else
 				{
 					controllers[i].deactivate();
 				}

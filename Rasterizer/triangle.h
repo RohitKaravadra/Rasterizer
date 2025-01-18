@@ -40,13 +40,22 @@ public:
 		x = std::ceil(x);
 		y = std::ceil(y);
 	}
+
+	static vec2D _min(const vec2D& v1, const vec2D& v2) {
+		return vec2D(min(v1.x, v2.x), min(v1.y, v2.y));
+	}
+
+	static vec2D _max(const vec2D& v1, const vec2D& v2) {
+		return vec2D(max(v1.x, v2.x), max(v1.y, v2.y));
+	}
 };
 
 // Class representing a triangle for rendering purposes
 class triangle {
 	Vertex v[3];       // Vertices of the triangle
 	float area;        // Area of the triangle
-	colour col[3];     // Colors for each vertex of the triangle
+	float invArea;	   // 1 / Area of the triangle
+	color col[3];      // Colors for each vertex of the triangle
 
 public:
 	// Constructor initializes the triangle with three vertices
@@ -61,13 +70,14 @@ public:
 		vec2D e1 = vec2D(v[1].p - v[0].p);
 		vec2D e2 = vec2D(v[2].p - v[0].p);
 		area = abs(e1.x * e2.y - e1.y * e2.x);
+		invArea = area != 0 ? 1 / area : 100.f;
 	}
 
 	// Helper function to compute the cross product for barycentric coordinates
 	// Input Variables:
 	// - v1, v2: Edges defining the vector
 	// - p: Point for which coordinates are being calculated
-	float getC(vec2D v1, vec2D v2, vec2D p) {
+	float getCross(vec2D v1, vec2D v2, vec2D p) {
 		vec2D e = v2 - v1;
 		vec2D q = p - v1;
 		return q.y * e.x - q.x * e.y;
@@ -80,9 +90,24 @@ public:
 	// - alpha, beta, gamma: Barycentric coordinates of the point
 	// Returns true if the point is inside the triangle, false otherwise
 	bool getCoordinates(vec2D p, float& alpha, float& beta, float& gamma) {
-		alpha = getC(vec2D(v[0].p), vec2D(v[1].p), p) / area;
-		beta = getC(vec2D(v[1].p), vec2D(v[2].p), p) / area;
-		gamma = getC(vec2D(v[2].p), vec2D(v[0].p), p) / area;
+		alpha = getCross(vec2D(v[0].p), vec2D(v[1].p), p) / area;
+		beta = getCross(vec2D(v[1].p), vec2D(v[2].p), p) / area;
+		gamma = getCross(vec2D(v[2].p), vec2D(v[0].p), p) / area;
+
+		if (alpha < 0.f || beta < 0.f || gamma < 0.f) return false;
+		return true;
+	}
+
+	// Compute barycentric coordinates for a given point
+	// Input Variables:
+	// - p: Point to check within the triangle
+	// Output Variables:
+	// - alpha, beta, gamma: Barycentric coordinates of the point
+	// Returns true if the point is inside the triangle, false otherwise
+	bool getCoordinatesNew(vec2D p, float& alpha, float& beta, float& gamma) {
+		alpha = getCross(vec2D(v[0].p), vec2D(v[1].p), p);
+		beta = getCross(vec2D(v[1].p), vec2D(v[2].p), p);
+		gamma = getCross(vec2D(v[2].p), vec2D(v[0].p), p);
 
 		if (alpha < 0.f || beta < 0.f || gamma < 0.f) return false;
 		return true;
@@ -119,27 +144,87 @@ public:
 
 				// Check if the pixel lies inside the triangle
 				if (getCoordinates(vec2D((float)x, (float)y), alpha, beta, gamma)) {
-
 					// Interpolate color, depth, and normals
+					color c = interpolate(beta, gamma, alpha, v[0].rgb, v[1].rgb, v[2].rgb);
+					c.clampColour();
 					float depth = interpolate(beta, gamma, alpha, v[0].p[2], v[1].p[2], v[2].p[2]);
+					vec4 normal = interpolate(beta, gamma, alpha, v[0].normal, v[1].normal, v[2].normal);
+					normal.normalise();
+
 					// Perform Z-buffer test and apply shading
 					if (renderer.zbuffer(x, y) > depth && depth > 0.01f) {
-
-						colour c = interpolate(beta, gamma, alpha, v[0].rgb, v[1].rgb, v[2].rgb);
-						c.clampColour();
-						vec4 normal = interpolate(beta, gamma, alpha, v[0].normal, v[1].normal, v[2].normal);
-
-						normal.normalise();
-
 						// typical shader begin
 						L.omega_i.normalise();
 						float dot = max(vec4::dot(L.omega_i, normal), 0.0f);
-						colour a = (c * kd) * (L.L * dot + (L.ambient * kd));
+						color a = (c * kd) * (L.L * dot + (L.ambient * kd));
 						// typical shader end
 						unsigned char r, g, b;
 						a.toRGB(r, g, b);
 						renderer.canvas.draw(x, y, r, g, b);
 						renderer.zbuffer(x, y) = depth;
+					}
+				}
+			}
+		}
+	}
+
+	// Draw the triangle on the canvas
+	// Input Variables:
+	// - renderer: Renderer object for drawing
+	// - L: Light object for shading calculations
+	// - ka, kd: Ambient and diffuse lighting coefficients
+	void drawNew(Renderer& renderer, Light& L, float ka, float kd) {
+
+		// Skip very small triangles
+		if (invArea > 1.f) return;
+
+		// normalize light before each pixel calculations
+		L.omega_i.normalise();
+
+		int minX, minY, maxX, maxY;
+		getBoundsWindowNew(renderer.canvas, minX, minY, maxX, maxY);
+
+		// variable decalaration outside loops
+		unsigned char finalColor[3];
+		color c, ambient = L.ambient * kd;
+		vec4 normal;
+		float depth, dot, alpha, beta, gamma;
+		int winWidth = renderer.canvas.getWidth();
+
+		// Iterate over the bounding box and check each pixel
+		for (int y = minY; y < maxY; y++) {
+
+			// pre calculating buffer index for row
+			int bufferIndex = y * winWidth;
+
+			for (int x = minX; x < maxX; x++) {
+
+				// Check if the pixel lies inside the triangle
+				if (getCoordinatesNew(vec2D(x, y), alpha, beta, gamma)) {
+
+					alpha *= invArea;
+					beta *= invArea;
+					gamma *= invArea;
+
+					// Interpolate color, depth, and normals
+					depth = interpolate(beta, gamma, alpha, v[0].p[2], v[1].p[2], v[2].p[2]);
+					// Perform Z-buffer test and apply shading
+					if (depth > 0.01f && renderer.zbuffer(x, y) > depth) {
+
+						c = interpolate(beta, gamma, alpha, v[0].rgb, v[1].rgb, v[2].rgb);
+
+						normal = interpolate(beta, gamma, alpha, v[0].normal, v[1].normal, v[2].normal);
+						normal.normalise();
+
+						// typical shader begin
+						dot = max(vec4::dot(L.omega_i, normal), 0.0f);
+						c = (c * kd) * (L.L * dot + ambient);
+						// typical shader end
+
+						c.toRGB(finalColor);
+
+						renderer.canvas.draw(bufferIndex + x, finalColor);
+						renderer.zbuffer[bufferIndex + x] = depth;
 					}
 				}
 			}
@@ -171,6 +256,19 @@ public:
 		minV.y = max(minV.y, 0);
 		maxV.x = min(maxV.x, canvas.getWidth());
 		maxV.y = min(maxV.y, canvas.getHeight());
+	}
+
+	void getBoundsWindowNew(GamesEngineeringBase::Window& canvas, int& minX, int& minY, int& maxX, int& maxY) {
+
+		vec2D minV = vec2D::_min(v[0].p, vec2D::_min(v[1].p, v[2].p));
+		vec2D maxV = vec2D::_max(v[0].p, vec2D::_max(v[1].p, v[2].p));
+
+		minV = vec2D::_max(minV, vec2D(0, 0));
+		maxV = vec2D::_min(maxV, vec2D(canvas.getWidth(), canvas.getHeight()));
+		maxV.ceil();
+
+		minX = minV.x; minY = minV.y;
+		maxX = maxV.x; maxY = maxV.y;
 	}
 
 	// Debugging utility to display the triangle bounds on the canvas
