@@ -452,7 +452,6 @@ namespace GamesEngineeringBase
 		// Processes input messages
 		void checkInput()
 		{
-
 			//quit = false; // reset quit input
 			pumpLoop();
 		}

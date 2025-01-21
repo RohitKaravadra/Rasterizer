@@ -37,6 +37,11 @@ public:
 		return { x * scalar, y * scalar, z * scalar, w * scalar };
 	}
 
+	// overloading unary minus 
+	vec4 operator-() const {
+		return *this * -1;
+	}
+
 	// Divides the vector by its W component and sets W to 1.
 	// Useful for normalizing the W component after transformations.
 	void divideW() {
@@ -79,7 +84,8 @@ public:
 	}
 
 	vec4 operator/(const float& val) {
-		return vec4(x / val, y / val, z / val, w / val);
+		float ival = 1 / val;
+		return vec4(x * ival, y * ival, z * ival, w * ival);
 	}
 
 	// Computes the cross product of two vectors.
@@ -108,9 +114,9 @@ public:
 	// Normalizes the vector to make its length equal to 1.
 	// This operation does not affect the W component.
 	void normalise() {
-		float length = std::sqrt(x * x + y * y + z * z);
-		x /= length;
-		y /= length;
-		z /= length;
+		float ilength = 1 / std::sqrt(x * x + y * y + z * z);
+		x *= ilength;
+		y *= ilength;
+		z *= ilength;
 	}
 };

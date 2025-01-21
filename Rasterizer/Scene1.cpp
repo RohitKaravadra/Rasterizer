@@ -49,16 +49,17 @@ void scene1() {
 			step *= -1.f;
 			if (++cycle % 2 == 0) {
 				end = std::chrono::high_resolution_clock::now();
-				std::cout << cycle / 2 << " " << std::chrono::duration<double, std::milli>(end - start).count() << "\n";
+				std::cout << cycle / 2 << "\t" << std::chrono::duration<double, std::milli>(end - start).count() << "\n";
 				start = std::chrono::high_resolution_clock::now();
 			}
 		}
 
 		// update view projection matrix before rendering
 		renderer.updateVP(camera);
+
 		// render all objects in a scene
-		for (auto& m : scene)
-			render(m, renderer, L);
+		render(scene, renderer, L);
+
 		renderer.present();
 	}
 

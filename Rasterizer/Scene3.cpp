@@ -7,15 +7,22 @@ static ChronoTimer timer;
 // No input variables
 void scene3() {
 	Renderer renderer;
+
 	// create light source {direction, diffuse intensity, ambient intensity}
 	Light L{ vec4(0.f, 1.f, 1.f, 0.f), color(1.0f, 1.0f, 1.0f), color(0.1f, 0.1f, 0.1f) };
+
 	// camera is just a matrix
 	matrix camera = matrix::makeIdentity(); // Initialize the camera with identity matrix
 
+	RandomNumberGenerator& rng = RandomNumberGenerator::getInstance();
+
 	std::vector<Mesh*> scene; // Vector to store scene objects
 
+	struct rRot { float x; float y; float z; }; // Structure to store random rotation parameters
+	std::vector<rRot> rotations;
+
 	// Create a sphere and a rectangle mesh
-	int totalX = 10, totalY = 10, totalZ = 5, space = 2;
+	int totalX = 11, totalY = 11, totalZ = 5, space = 2;
 	for (int i = 0; i < totalX; i++)
 	{
 		for (int j = 0; j < totalY; j++)
@@ -24,9 +31,12 @@ void scene3() {
 			{
 				//Mesh mesh = Mesh::makeCube(2);
 				Mesh* mesh = new Mesh();
-				*mesh = Mesh::makeSphere(1.f, 10, 10);
+				//*mesh = Mesh::makeSphere(1.f, 10, 10);
+				*mesh = Mesh::makeCube(1);
 				mesh->world = matrix::makeTranslation((i - totalX / 2) * space, (j - totalY / 2) * space, -k * space - 4);
 				scene.push_back(mesh);
+				rRot r{ rng.getRandomFloat(-.1f, .1f), rng.getRandomFloat(-.1f, .1f), rng.getRandomFloat(-.1f, .1f) };
+				rotations.push_back(r);
 			}
 		}
 	}
@@ -55,15 +65,18 @@ void scene3() {
 		// Apply transformations to the camera
 		camera = matrix::makeTranslation(x, y, z);
 
+
+		// Rotate each cube in the grid
+		for (unsigned int i = 0; i < rotations.size(); i++)
+			scene[i]->world = scene[i]->world * matrix::makeRotateXYZ(rotations[i].x, rotations[i].y, rotations[i].z);
+
 		// update view projection matrix before rendering
 		renderer.updateVP(camera);
-		// Render each object in the scene
+
 		timer.reset();
 
-		//for (auto& m : scene)
-		//	render(m, renderer, L);
-		
-		renderNew(scene, renderer, L);
+		render(scene, renderer, L);
+
 		timer.elapsed();
 
 		renderer.present(); // Display the rendered frame
