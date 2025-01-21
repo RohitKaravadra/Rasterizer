@@ -31,8 +31,8 @@ void scene3() {
 			{
 				//Mesh mesh = Mesh::makeCube(2);
 				Mesh* mesh = new Mesh();
-				//*mesh = Mesh::makeSphere(1.f, 10, 10);
-				*mesh = Mesh::makeCube(1);
+				*mesh = Mesh::makeSphere(1.f, 10, 10);
+				//*mesh = Mesh::makeCube(1);
 				mesh->world = matrix::makeTranslation((i - totalX / 2) * space, (j - totalY / 2) * space, -k * space - 4);
 				scene.push_back(mesh);
 				rRot r{ rng.getRandomFloat(-.1f, .1f), rng.getRandomFloat(-.1f, .1f), rng.getRandomFloat(-.1f, .1f) };

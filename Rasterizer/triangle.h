@@ -58,7 +58,6 @@ class triangle {
 	color col[3];      // Colors for each vertex of the triangle
 
 	float invArea;	   // 1 / Area of the triangle
-
 public:
 	// Constructor initializes the triangle with three vertices
 	// Input Variables:
@@ -88,7 +87,7 @@ public:
 	// - v1, v2: Edges defining the vector
 	// - p: Point for which coordinates are being calculated
 	float getCross(const vec2D& a, const vec2D& b) {
-		return a.x * b.y  - b.x * a.y;
+		return a.x * b.y - b.x * a.y;
 	}
 
 	// Compute barycentric coordinates for a given point
@@ -121,13 +120,10 @@ public:
 	// - renderer: Renderer object for drawing
 	// - L: Light object for shading calculations
 	// - ka, kd: Ambient and diffuse lighting coefficients
-	void draw(Renderer& renderer, Light& L, float ka, float kd) {
+	void draw(Renderer& renderer, const vec4& omega_i, const color& ambient, const color& diffuse) {
 
 		// Skip very small triangles
 		if (invArea > 1.f) return;
-
-		// normalize light before each pixel calculations
-		L.omega_i.normalise();
 
 		int minX, minY, maxX, maxY;
 		int canWidth = renderer.canvas.getWidth(), canHeight = renderer.canvas.getHeight();
@@ -135,7 +131,7 @@ public:
 
 		// variable decalaration outside loops
 		unsigned char finalColor[3];
-		color c, ambient = L.ambient * kd;
+		color c;
 		vec4 normal;
 		float depth, dot, alpha, beta, gamma;
 
@@ -157,7 +153,7 @@ public:
 					// Interpolate color, depth, and normals
 					depth = interpolate(beta, gamma, alpha, v[0].p[2], v[1].p[2], v[2].p[2]);
 					// Perform Z-buffer test and apply shading
-					if (depth > 0.01f && renderer.zbuffer(x, y) > depth) {
+					if (depth > 0.01f && renderer.getDepth(bufferIndex + x) > depth) {
 
 						c = interpolate(beta, gamma, alpha, v[0].rgb, v[1].rgb, v[2].rgb);
 
@@ -165,14 +161,14 @@ public:
 						normal.normalise();
 
 						// typical shader begin
-						dot = max(vec4::dot(L.omega_i, normal), 0.0f);
-						c = (c * kd) * (L.L * dot) + ambient;
+						dot = max(vec4::dot(omega_i, normal), 0.0f);
+						c = c * dot * diffuse + ambient;
 						// typical shader end
 
 						c.toRGB(finalColor);
 
-						renderer.canvas.draw(bufferIndex + x, finalColor);
-						renderer.zbuffer[bufferIndex + x] = depth;
+						renderer.draw(bufferIndex + x, finalColor);
+						renderer.setDepth(bufferIndex + x, depth);
 					}
 				}
 			}

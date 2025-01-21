@@ -4,6 +4,7 @@
 #include "GamesEngineeringBase.h"
 #include "zbuffer.h"
 #include "matrix.h"
+#include <mutex>
 
 // The `Renderer` class handles rendering operations, including managing the
 // Z-buffer, canvas, and perspective transformations for a 3D scene.
@@ -14,8 +15,12 @@ class Renderer {
 	float f = 100.0f;                  // Far clipping plane distance
 
 	matrix perspective;                      // Perspective Projection matrix
-public:
+
+	std::mutex zmtx; // lock for z buffer
+	std::mutex bmtx; // lock for back buffer
+
 	Zbuffer<float> zbuffer;					 // Z-buffer for depth management
+public:
 	GamesEngineeringBase::Window canvas;     // Canvas for rendering the scene
 	matrix vp;                               // view projection matrix
 
@@ -40,5 +45,20 @@ public:
 	// update view projection matrix
 	void updateVP(const matrix& view) {
 		vp = perspective * view;
+	}
+
+	void draw(const unsigned int& index, unsigned char* _color) {
+		//std::lock_guard<std::mutex> lock(bmtx);
+		canvas.draw(index, _color);
+	}
+
+	void setDepth(const unsigned int& index, float val) {
+		//std::lock_guard<std::mutex> lock(zmtx);
+		zbuffer[index] = val;
+	}
+
+	float getDepth(const unsigned int& index) {
+		//std::lock_guard<std::mutex> lock(zmtx);
+		return zbuffer[index];
 	}
 };

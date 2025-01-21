@@ -78,7 +78,7 @@ public:
     // Input Variables:
     // - scalar: The scaling factor
     // Returns a new `colour` object with scaled components.
-    color operator * (const float scalar) {
+    color operator * (const float& scalar) {
         color c;
         c.r = r * scalar;
         c.g = g * scalar;
