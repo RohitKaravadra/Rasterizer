@@ -64,7 +64,7 @@ void scene2() {
 		// update view projection matrix before rendering
 		renderer.updateVP(camera);
 
-		render(scene, renderer, L);
+		renderCaching(scene, renderer, L);
 
 		renderer.present();
 	}

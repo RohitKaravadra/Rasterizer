@@ -75,7 +75,7 @@ void scene3() {
 
 		timer.reset();
 
-		render(scene, renderer, L);
+		renderCaching(scene, renderer, L);
 
 		timer.elapsed();
 

@@ -14,13 +14,13 @@ class Renderer {
 	float n = 0.1f;                    // Near clipping plane distance
 	float f = 100.0f;                  // Far clipping plane distance
 
-	matrix perspective;                      // Perspective Projection matrix
+	matrix perspective;                     // Perspective Projection matrix
+	Zbuffer<float> zbuffer;					// Z-buffer for depth management
 
-	std::mutex zmtx; // lock for z buffer
-	std::mutex bmtx; // lock for back buffer
-
-	Zbuffer<float> zbuffer;					 // Z-buffer for depth management
+	std::mutex mtx;
 public:
+	//Nbuffer<float, 4> nbuffer;				// normal buffer to store normals
+	//Nbuffer<float, 2> lbuffer;				// light buffer to store ambient and diffuse constants
 	GamesEngineeringBase::Window canvas;     // Canvas for rendering the scene
 	matrix vp;                               // view projection matrix
 
@@ -47,18 +47,18 @@ public:
 		vp = perspective * view;
 	}
 
-	void draw(const unsigned int& index, unsigned char* _color) {
-		//std::lock_guard<std::mutex> lock(bmtx);
+	// draw and set depth of the pixel
+	// index : linear index of the pixel (index = width * y + x)
+	// _color : array of unsigned char for color
+	// val : float value between 0 and 1 for zbuffer
+	void drawAndSetDepth(const unsigned int& index, unsigned char* _color, const float& val)
+	{
+		//std::lock_guard<std::mutex> lock(mtx);
 		canvas.draw(index, _color);
-	}
-
-	void setDepth(const unsigned int& index, float val) {
-		//std::lock_guard<std::mutex> lock(zmtx);
 		zbuffer[index] = val;
 	}
 
 	float getDepth(const unsigned int& index) {
-		//std::lock_guard<std::mutex> lock(zmtx);
 		return zbuffer[index];
 	}
 };

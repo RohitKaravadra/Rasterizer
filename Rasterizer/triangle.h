@@ -130,9 +130,9 @@ public:
 		getBoundsWindow(canWidth, canHeight, minX, minY, maxX, maxY);
 
 		// variable decalaration outside loops
-		unsigned char finalColor[3];
 		color c;
 		vec4 normal;
+		unsigned char finalColor[3];
 		float depth, dot, alpha, beta, gamma;
 
 		// Iterate over the bounding box and check each pixel
@@ -167,11 +167,180 @@ public:
 
 						c.toRGB(finalColor);
 
-						renderer.draw(bufferIndex + x, finalColor);
-						renderer.setDepth(bufferIndex + x, depth);
+						renderer.drawAndSetDepth(bufferIndex + x, finalColor, depth);
 					}
 				}
 			}
+		}
+	}
+
+	// Draw the triangle on the canvas
+	// Input Variables:
+	// - renderer: Renderer object for drawing
+	// - L: Light object for shading calculations
+	// - ka, kd: Ambient and diffuse lighting coefficients
+	void drawIncremental(Renderer& renderer, const vec4& omega_i, const color& ambient, const color& diffuse) {
+
+		// Skip very small triangles
+		if (invArea > 1.f) return;
+
+		int minX, minY, maxX, maxY;
+		int canWidth = renderer.canvas.getWidth(), canHeight = renderer.canvas.getHeight();
+		getBoundsWindow(canWidth, canHeight, minX, minY, maxX, maxY);
+
+		// variable decalaration outside loops
+		color c;
+		vec4 normal;
+		float  depth, dot;
+		unsigned char finalColor[3];
+
+		vec2D p(minX, minY);
+
+		// calculate starting value of barycentric coordinates
+		float alpha0 = getCross(e[0], p - v[1].p) * invArea;
+		float beta0 = getCross(e[1], p - v[2].p) * invArea;
+		float gamma0 = getCross(e[2], p - v[0].p) * invArea;
+
+		// calculate horozontal and verticle change in barycentric coordinates
+		float deltaAlphaX = -e[0].y * invArea, deltaAlphaY = e[0].x * invArea;
+		float deltaBetaX = -e[1].y * invArea, deltaBetaY = e[1].x * invArea;
+		float deltaGammaX = -e[2].y * invArea, deltaGammaY = e[2].x * invArea;
+
+		// set initial values of barycentric coordinates
+		float alpha, beta, gamma;
+		float alphaRow = alpha0, betaRow = beta0, gammaRow = gamma0;
+
+		// Iterate over the bounding box and check each pixel
+		for (int y = minY; y < maxY; y++) {
+
+			// pre calculating buffer index for row
+			int bufferIndex = y * canWidth;
+
+			// set row barycentric coordinates
+			alpha = alphaRow;
+			beta = betaRow;
+			gamma = gammaRow;
+
+			for (int x = minX; x < maxX; x++) {
+
+				// Check if the pixel lies inside the triangle
+				if (alpha >= 0.f && beta >= 0.f && gamma >= 0.f) {
+					// Interpolate color, depth, and normals
+					depth = interpolate(beta, gamma, alpha, v[0].p[2], v[1].p[2], v[2].p[2]);
+					// Perform Z-buffer test and apply shading
+					if (depth > 0.01f && renderer.getDepth(bufferIndex + x) > depth) {
+
+						c = interpolate(beta, gamma, alpha, v[0].rgb, v[1].rgb, v[2].rgb);
+
+						normal = interpolate(beta, gamma, alpha, v[0].normal, v[1].normal, v[2].normal);
+						normal.normalise();
+
+						// typical shader begin
+						dot = max(vec4::dot(omega_i, normal), 0.0f);
+						c = c * dot * diffuse + ambient;
+						// typical shader end
+
+						c.toRGB(finalColor);
+
+						renderer.drawAndSetDepth(bufferIndex + x, finalColor, depth);
+					}
+				}
+
+				// horizontal increment of barycentric coordinates
+				alpha += deltaAlphaX;
+				beta += deltaBetaX;
+				gamma += deltaGammaX;
+			}
+
+			// verticle increment of barycentric coordinates
+			alphaRow += deltaAlphaY;
+			betaRow += deltaBetaY;
+			gammaRow += deltaGammaY;
+		}
+	}
+
+	// Draw the triangle on the canvas
+	// Input Variables:
+	// - renderer: Renderer object for drawing
+	// - L: Light object for shading calculations
+	// - ka, kd: Ambient and diffuse lighting coefficients
+	void drawIncrementalSIMD(Renderer& renderer, const vec4& omega_i, const color& ambient, const color& diffuse) {
+
+		// Skip very small triangles
+		if (invArea > 1.f) return;
+
+		int minX, minY, maxX, maxY;
+		int canWidth = renderer.canvas.getWidth(), canHeight = renderer.canvas.getHeight();
+		getBoundsWindow(canWidth, canHeight, minX, minY, maxX, maxY);
+
+		// variable decalaration outside loops
+		color c;
+		vec4 normal;
+		float  depth, dot;
+		unsigned char finalColor[3];
+
+		vec2D p(minX, minY);
+
+		// calculate starting value of barycentric coordinates
+		float alpha0 = getCross(e[0], p - v[1].p) * invArea;
+		float beta0 = getCross(e[1], p - v[2].p) * invArea;
+		float gamma0 = getCross(e[2], p - v[0].p) * invArea;
+
+		// calculate horozontal and verticle change in barycentric coordinates
+		float deltaAlphaX = -e[0].y * invArea, deltaAlphaY = e[0].x * invArea;
+		float deltaBetaX = -e[1].y * invArea, deltaBetaY = e[1].x * invArea;
+		float deltaGammaX = -e[2].y * invArea, deltaGammaY = e[2].x * invArea;
+
+		// set initial values of barycentric coordinates
+		float alpha, beta, gamma;
+		float alphaRow = alpha0, betaRow = beta0, gammaRow = gamma0;
+
+		// Iterate over the bounding box and check each pixel
+		for (int y = minY; y < maxY; y++) {
+
+			// pre calculating buffer index for row
+			int bufferIndex = y * canWidth;
+
+			// set row barycentric coordinates
+			alpha = alphaRow;
+			beta = betaRow;
+			gamma = gammaRow;
+
+			for (int x = minX; x < maxX; x++) {
+
+				// Check if the pixel lies inside the triangle
+				if (alpha >= 0.f && beta >= 0.f && gamma >= 0.f) {
+					// Interpolate color, depth, and normals
+					depth = interpolate(beta, gamma, alpha, v[0].p[2], v[1].p[2], v[2].p[2]);
+					// Perform Z-buffer test and apply shading
+					if (depth > 0.01f && renderer.getDepth(bufferIndex + x) > depth) {
+
+						c = interpolate(beta, gamma, alpha, v[0].rgb, v[1].rgb, v[2].rgb);
+
+						normal = interpolate(beta, gamma, alpha, v[0].normal, v[1].normal, v[2].normal);
+						normal.normalise();
+
+						// typical shader begin
+						dot = max(vec4::dot(omega_i, normal), 0.0f);
+						c = c * dot * diffuse + ambient;
+						// typical shader end
+
+						c.toRGB(finalColor);
+
+						renderer.drawAndSetDepth(bufferIndex + x, finalColor, depth);
+					}
+				}
+
+				// horizontal increment of barycentric coordinates
+				alpha += deltaAlphaX;
+				beta += deltaBetaX;
+				gamma += deltaGammaX;
+			}
+
+			// verticle increment of barycentric coordinates
+			alphaRow += deltaAlphaY;
+			betaRow += deltaBetaY;
+			gammaRow += deltaGammaY;
 		}
 	}
 

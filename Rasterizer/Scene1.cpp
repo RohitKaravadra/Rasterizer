@@ -58,7 +58,9 @@ void scene1() {
 		renderer.updateVP(camera);
 
 		// render all objects in a scene
-		render(scene, renderer, L);
+		renderCaching(scene, renderer, L);
+
+		//renderSharedCounter(scene, renderer, L, 3);
 
 		renderer.present();
 	}

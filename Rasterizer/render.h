@@ -41,7 +41,7 @@ inline void processVertex(const matrix& p, const matrix& w, const Vertex& mv,
 	out.rgb = mv.rgb;
 }
 
-static void render(const std::vector<Mesh*>& meshes, Renderer& renderer, Light& L) {
+static void renderCaching(const std::vector<Mesh*>& meshes, Renderer& renderer, Light& L) {
 
 	L.omega_i.normalise(); // normalize light before rendering
 
@@ -71,7 +71,7 @@ static void render(const std::vector<Mesh*>& meshes, Renderer& renderer, Light& 
 			if (fabs(t[0].p[2]) > 1.0f || fabs(t[1].p[2]) > 1.0f || fabs(t[2].p[2]) > 1.0f) break;
 
 			// Create and render triangle object 
-			triangle(t[0], t[1], t[2]).draw(renderer, L.omega_i, ambient, diffuse);
+			triangle(t[0], t[1], t[2]).drawIncremental(renderer, L.omega_i, ambient, diffuse);
 		}
 	}
 }
@@ -84,14 +84,20 @@ static std::atomic<int> triCounter; // triangle index atomic counter for threads
 // - total: size of triangle array 
 // - renderer: reference to renderer 
 // - L: reference to Light
-static void drawTriangles(triangleData* tris, int total, Renderer& renderer, Light& L)
+static void drawTriangles(triangleData* tris, int total, Renderer& renderer, vec4 lightDir)
 {
 	int i;
 	while ((i = triCounter.fetch_add(1)) < total)
-		tris[i].tri.draw(renderer, L.omega_i, tris[i].a, tris[i].d);
+		tris[i].tri.drawIncremental(renderer, lightDir, tris[i].a, tris[i].d);
 }
 
-static void renderMT(const std::vector<Mesh*>& meshes, Renderer& renderer, Light& L)
+// method processes and draws triangles using shared counter
+// - meshes : array of meshes
+// - renderer : reference to the renderer
+// - L : light
+// - totalThreads : number of threads to use for multithreading
+// default value set to 3 works best for this value
+static void renderSharedCounter(const std::vector<Mesh*>& meshes, Renderer& renderer, Light& L,unsigned int totalThreads = 3)
 {
 	L.omega_i.normalise(); // normalize light before rendering
 
@@ -127,16 +133,15 @@ static void renderMT(const std::vector<Mesh*>& meshes, Renderer& renderer, Light
 		}
 	}
 
-	unsigned int totalThreads = 3; // number of threads to use
 	unsigned int size = triangles.size(); // total triangles count
-
+	
 	triCounter.store(0); // reset triangle counter
-
+	
 	// render triangle using multiple threads
 	std::vector<std::thread> threads; // threads array
 	for (int i = 0; i < totalThreads; i++)
-		threads.emplace_back(std::thread(drawTriangles, &triangles[0], size, std::ref(renderer), std::ref(L)));
-
+		threads.emplace_back(std::thread(drawTriangles, &triangles[0], size, std::ref(renderer), L.omega_i));
+	
 	for (auto& t : threads)
 		t.join();
 }
