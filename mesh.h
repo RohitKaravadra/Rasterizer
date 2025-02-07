@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#define _USE_MATH_DEFINES
+
 #include <vector>
 #include <iostream>
 #include "vec4.h"
@@ -10,7 +12,7 @@
 struct Vertex {
     vec4 p;         // Position of the vertex in 3D space
     vec4 normal;    // Normal vector for the vertex
-    colour rgb;     // Color of the vertex
+    color rgb;     // Color of the vertex
 };
 
 // Stores indices of vertices that form a triangle in a mesh
@@ -28,7 +30,7 @@ struct triIndices {
 // Class representing a 3D mesh made up of vertices and triangles
 class Mesh {
 public:
-    colour col;       // Uniform color for the mesh
+    color col;       // Uniform color for the mesh
     float kd;         // Diffuse reflection coefficient
     float ka;         // Ambient reflection coefficient
     matrix world;     // Transformation matrix for the mesh
@@ -40,10 +42,11 @@ public:
     // - _c: Uniform color
     // - _ka: Ambient reflection coefficient
     // - _kd: Diffuse reflection coefficient
-    void setColour(colour _c, float _ka, float _kd) {
+    void setColour(color _c, float _ka, float _kd) {
         col = _c;
         ka = _ka;
         kd = _kd;
+        col.clampColour(); // do it once to avoide calculating for each pixel during rendering
     }
 
     // Default constructor initializes default color and reflection coefficients

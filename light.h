@@ -6,7 +6,7 @@
 // keep light straightforward - struct for storing information
 struct Light {
     vec4 omega_i; // light direction
-    colour L; // light colour
-    colour ambient; // ambient light component 
+    color L; // light colour
+    color ambient; // ambient light component 
 };
 

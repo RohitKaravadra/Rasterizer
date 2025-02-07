@@ -3,61 +3,68 @@
 // Function to render a scene with multiple objects and dynamic transformations
 // No input variables
 void scene1() {
-    Renderer renderer;
-    matrix camera;
-    Light L{ vec4(0.f, 1.f, 1.f, 0.f), colour(1.0f, 1.0f, 1.0f), colour(0.1f, 0.1f, 0.1f) };
+	Renderer renderer;
+	matrix camera;
+	Light L{ vec4(0.f, 1.f, 1.f, 0.f), color(1.0f, 1.0f, 1.0f), color(0.1f, 0.1f, 0.1f) };
 
-    bool running = true;
+	bool running = true;
 
-    std::vector<Mesh*> scene;
+	std::vector<Mesh*> scene;
 
-    // Create a scene of 40 cubes with random rotations
-    for (unsigned int i = 0; i < 20; i++) {
-        Mesh* m = new Mesh();
-        *m = Mesh::makeCube(1.f);
-        m->world = matrix::makeTranslation(-2.0f, 0.0f, (-3 * static_cast<float>(i))) * makeRandomRotation();
-        scene.push_back(m);
-        m = new Mesh();
-        *m = Mesh::makeCube(1.f);
-        m->world = matrix::makeTranslation(2.0f, 0.0f, (-3 * static_cast<float>(i))) * makeRandomRotation();
-        scene.push_back(m);
-    }
+	// Create a scene of 40 cubes with random rotations
+	for (unsigned int i = 0; i < 20; i++) {
+		Mesh* m = new Mesh();
+		*m = Mesh::makeCube(1.f);
+		m->world = matrix::makeTranslation(-2.0f, 0.0f, (-3 * static_cast<float>(i))) * makeRandomRotation();
+		scene.push_back(m);
+		m = new Mesh();
+		*m = Mesh::makeCube(1.f);
+		m->world = matrix::makeTranslation(2.0f, 0.0f, (-3 * static_cast<float>(i))) * makeRandomRotation();
+		scene.push_back(m);
+	}
 
-    float zoffset = 8.0f; // Initial camera Z-offset
-    float step = -0.1f;  // Step size for camera movement
+	float zoffset = 8.0f; // Initial camera Z-offset
+	float step = -0.1f;  // Step size for camera movement
 
-    auto start = std::chrono::high_resolution_clock::now();
-    std::chrono::time_point<std::chrono::high_resolution_clock> end;
-    int cycle = 0;
+	auto start = std::chrono::high_resolution_clock::now();
+	std::chrono::time_point<std::chrono::high_resolution_clock> end;
+	int cycle = 0;
 
-    // Main rendering loop
-    while (running) {
-        renderer.canvas.checkInput();
-        renderer.clear();
+	// Main rendering loop
+	while (running) {
+		renderer.canvas.checkInput();
+		if (renderer.canvas.keyPressed(VK_ESCAPE) || renderer.canvas.IsQuit()) break;
 
-        camera = matrix::makeTranslation(0, 0, -zoffset); // Update camera position
+		renderer.clear();
 
-        // Rotate the first two cubes in the scene
-        scene[0]->world = scene[0]->world * matrix::makeRotateXYZ(0.1f, 0.1f, 0.0f);
-        scene[1]->world = scene[1]->world * matrix::makeRotateXYZ(0.0f, 0.1f, 0.2f);
+		camera = matrix::makeTranslation(0, 0, -zoffset); // Update camera position
 
-        if (renderer.canvas.keyPressed(VK_ESCAPE)) break;
+		// Rotate the first two cubes in the scene
+		scene[0]->world = scene[0]->world * matrix::makeRotateXYZ(0.1f, 0.1f, 0.0f);
+		scene[1]->world = scene[1]->world * matrix::makeRotateXYZ(0.0f, 0.1f, 0.2f);
 
-        zoffset += step;
-        if (zoffset < -60.f || zoffset > 8.f) {
-            step *= -1.f;
-            if (++cycle % 2 == 0) {
-                end = std::chrono::high_resolution_clock::now();
-                std::cout << cycle / 2 << " :" << std::chrono::duration<double, std::milli>(end - start).count() << "ms\n";
-                start = std::chrono::high_resolution_clock::now();
-            }
-        }
 
-        for (auto& m : scene)
-            render(renderer, m, camera, L);
-        renderer.present();
-    }
+		zoffset += step;
+		if (zoffset < -60.f || zoffset > 8.f) {
+			step *= -1.f;
+			if (++cycle % 2 == 0) {
+				end = std::chrono::high_resolution_clock::now();
+				std::cout << cycle / 2 << "\t" << std::chrono::duration<double, std::milli>(end - start).count() << "\n";
+				start = std::chrono::high_resolution_clock::now();
+			}
+		}
 
-    for (auto& m : scene)
-        delete m;
+		// update view projection matrix before rendering
+		renderer.updateVP(camera);
+
+		// render all objects in a scene
+		Render::renderCaching(scene, renderer, L);
+
+		//renderSharedCounter(scene, renderer, L, 3);
+
+		renderer.present();
+	}
+
+	for (auto& m : scene)
+		delete m;
 }

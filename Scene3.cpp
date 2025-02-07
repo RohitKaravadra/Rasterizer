@@ -22,7 +22,7 @@ void scene3() {
 	std::vector<rRot> rotations;
 
 	// Create a sphere and a rectangle mesh
-	int totalX = 11, totalY = 11, totalZ = 5, space = 2;
+	int totalX = 20, totalY = 20, totalZ = 20, space = 2;
 	for (int i = 0; i < totalX; i++)
 	{
 		for (int j = 0; j < totalY; j++)
@@ -75,7 +75,7 @@ void scene3() {
 
 		timer.reset();
 
-		renderCaching(scene, renderer, L);
+		Render::renderSentinelQueue(scene, renderer, L, 4, 4);
 
 		timer.elapsed();
 

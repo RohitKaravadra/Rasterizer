@@ -529,6 +529,8 @@ namespace GamesEngineeringBase
 			pumpLoop();
 		}
 
+		bool IsQuit() const { return quit; }
+
 		// Returns the window's width
 		unsigned int getWidth()
 		{
@@ -540,28 +542,6 @@ namespace GamesEngineeringBase
 		{
 			return height;
 		}
-
-		// Returns windows handle
-		HWND& getHwnd() {
-			return hwnd;
-		}
-
-		// Returns windows instance
-		HINSTANCE& getHinstance() {
-			return hinstance;
-		}
-
-		// Returns directx 11 device pointer
-		ID3D11Device* getDXDevice() {
-			return dev;
-		}
-
-		// Returns directx 11 device context pointer
-		ID3D11DeviceContext* getDXContex() {
-			return devcontext;
-		}
-
-		bool isQuit() { return quit; }
 
 		// Checks if a specific key is currently pressed
 		bool keyPressed(int key)
