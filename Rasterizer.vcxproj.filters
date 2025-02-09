@@ -42,7 +42,7 @@
     <ClInclude Include="vec4.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="zbuffer.h">
+    <ClInclude Include="zbufferAtomic.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Includes.h">
@@ -63,6 +63,9 @@
     <ClInclude Include="sentinelQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="zbuffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Scene3.cpp">
@@ -75,9 +78,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Scene2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="render.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

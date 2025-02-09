@@ -75,7 +75,7 @@ void scene3() {
 
 		timer.reset();
 
-		Render::renderSentinelQueue(scene, renderer, L, 4, 4);
+		renderCaching(scene, renderer, L);
 
 		timer.elapsed();
 

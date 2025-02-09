@@ -68,9 +68,9 @@ public:
 		v[0] = v1; v[1] = v2; v[2] = v3;
 
 		// calculate edges
-		e[0] = vec2D(v[1].p - v[0].p);
-		e[1] = vec2D(v[2].p - v[1].p);
-		e[2] = vec2D(v[0].p - v[2].p);
+		e[0] = v[1].p - v[0].p;
+		e[1] = v[2].p - v[1].p;
+		e[2] = v[0].p - v[2].p;
 
 		// clam colors
 		col[0].clampColour();

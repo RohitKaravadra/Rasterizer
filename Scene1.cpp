@@ -58,7 +58,7 @@ void scene1() {
 		renderer.updateVP(camera);
 
 		// render all objects in a scene
-		Render::renderCaching(scene, renderer, L);
+		renderCaching(scene, renderer, L);
 
 		//renderSharedCounter(scene, renderer, L, 3);
 

@@ -46,8 +46,9 @@ void scene2() {
 		renderer.clear();
 
 		// Rotate each cube in the grid
-		for (unsigned int i = 0; i < rotations.size(); i++)
+		for (int i = 0; i < rotations.size(); i++)
 			scene[i]->world = scene[i]->world * matrix::makeRotateXYZ(rotations[i].x, rotations[i].y, rotations[i].z);
+
 
 		// Move the sphere back and forth
 		sphereOffset += sphereStep;
@@ -64,7 +65,7 @@ void scene2() {
 		// update view projection matrix before rendering
 		renderer.updateVP(camera);
 
-		Render::renderSharedCounter(scene, renderer, L, 6);
+		renderCaching(scene, renderer, L);
 
 		renderer.present();
 	}

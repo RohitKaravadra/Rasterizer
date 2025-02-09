@@ -2,6 +2,7 @@
 #define _USE_MATH_DEFINES
 #include <cmath>
 #include "GamesEngineeringBase.h"
+#include "zbufferAtomic.h"
 #include "zbuffer.h"
 #include "matrix.h"
 #include <mutex>
