@@ -77,7 +77,7 @@ public:
 	// - v: vec4 object to multiply with the matrix
 	// Returns the resulting transformed vec4
 	vec4 operator * (const vec4& v) const {
-		return mul_point(v);
+		return mul_point_avx(v);
 	}
 
 	matrix mul(const matrix& mx) const
@@ -161,7 +161,7 @@ public:
 	// Returns the resulting matrix
 	matrix operator * (const matrix& mx) const
 	{
-		return mul(mx);
+		return mul_avx(mx);
 	}
 
 	static matrix makeTranspose(const matrix& mat)

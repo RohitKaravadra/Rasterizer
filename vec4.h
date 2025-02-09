@@ -45,9 +45,10 @@ public:
 	// Divides the vector by its W component and sets W to 1.
 	// Useful for normalizing the W component after transformations.
 	void divideW() {
-		x /= w;
-		y /= w;
-		z /= w;
+		float iw = 1.f / w;
+		x *= iw;
+		y *= iw;
+		z *= iw;
 		w = 1.f;
 	}
 

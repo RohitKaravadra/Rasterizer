@@ -36,6 +36,7 @@ SOFTWARE.
 #include <atlbase.h>
 #include <Xinput.h>
 #include <math.h>
+#include <atomic>
 
 // Link necessary libraries
 #pragma comment(lib, "D3D11.lib")
@@ -69,7 +70,7 @@ namespace GamesEngineeringBase
 		ID3D11ShaderResourceView* srv;           // Shader resource view
 		ID3D11PixelShader* ps;                   // Pixel shader
 		ID3D11VertexShader* vs;                  // Vertex shader
-		unsigned char* image;                    // Back buffer image data
+		std::atomic<unsigned char>* image;                    // Back buffer image data
 		bool keys[256];                          // Keyboard state array
 		int mousex;                              // Mouse X-coordinate
 		int mousey;                              // Mouse Y-coordinate
@@ -436,7 +437,7 @@ namespace GamesEngineeringBase
 			devcontext->PSSetShaderResources(0, 1, &srv);
 
 			// Allocate memory for the back buffer image data
-			image = new unsigned char[width * height * 3];
+			image = new std::atomic<unsigned char>[width * height * 3];
 			clear(); // Clear the image data
 
 			// Initialize input states
@@ -457,38 +458,40 @@ namespace GamesEngineeringBase
 		}
 
 		// Returns a pointer to the back buffer image data
-		unsigned char* backBuffer()
+		std::atomic<unsigned char>* backBuffer()
 		{
 			return image;
 		}
 
 		// Draws a pixel at (x, y) with the specified RGB color
-		void draw(int x, int y, unsigned char r, unsigned char g, unsigned char b)
+		void drawCaching(int x, int y, unsigned char r, unsigned char g, unsigned char b)
 		{
 			int index = ((y * width) + x) * 3;
-			image[index] = r;
-			image[index + 1] = g;
-			image[index + 2] = b;
+			image[index].store(r);
+			image[index + 1].store(g);
+			image[index + 2].store(b);
 		}
 
 		// Draws a pixel at the specified pixel index with the given RGB color
-		void draw(int pixelIndex, unsigned char r, unsigned char g, unsigned char b)
+		void drawCaching(int pixelIndex, unsigned char r, unsigned char g, unsigned char b)
 		{
 			int index = pixelIndex * 3;
-			image[index] = r;
-			image[index + 1] = g;
-			image[index + 2] = b;
+			image[index].store(r);
+			image[index + 1].store(g);
+			image[index + 2].store(b);
 		}
 
 		// Draws a pixel at the specified pixel index with the given pixel array
-		void draw(int pixelIndex, unsigned char* pixel)
+		void drawCaching(int pixelIndex, unsigned char* pixel)
 		{
 			int index = pixelIndex * 3;
-			memcpy(&image[index], pixel, 3);
+			image[index].store(pixel[0]);
+			image[index + 1].store(pixel[1]);
+			image[index + 2].store(pixel[2]);
 		}
 
 		// Draws a pixel at (x, y) using the color from the provided pixel array
-		void draw(int x, int y, unsigned char* pixel)
+		void drawCaching(int x, int y, unsigned char* pixel)
 		{
 			int index = ((y * width) + x) * 3;
 			image[index] = pixel[0];

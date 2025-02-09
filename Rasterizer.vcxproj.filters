@@ -57,9 +57,6 @@
     <ClInclude Include="render.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="nbuffer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="sentinelQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>

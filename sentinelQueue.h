@@ -52,6 +52,6 @@ public:
 
 	bool isEmpty() {
 		std::lock_guard<std::mutex> lock(headLock);
-		return head->next == nullptr;
+		return head->next;
 	}
 };

@@ -59,7 +59,7 @@ static void drawTriangles(triangleData* tris, int total, Renderer& renderer, vec
 {
 	int i;
 	while ((i = triCounter.fetch_add(1)) < total)
-		tris[i].tri.drawIncremental(renderer, lightDir, tris[i].a, tris[i].d);
+		tris[i].tri.draw(renderer, lightDir, tris[i].a, tris[i].d);
 }
 
 // method processes and draws triangles using caching
@@ -97,7 +97,7 @@ static void renderCaching(const std::vector<Mesh*>& meshes, Renderer& renderer, 
 			if (fabs(t[0].p[2]) > 1.0f || fabs(t[1].p[2]) > 1.0f || fabs(t[2].p[2]) > 1.0f) break;
 
 			// Create and render triangle object 
-			triangle(t[0], t[1], t[2]).drawIncremental(renderer, L.omega_i, ambient, diffuse);
+			triangle(t[0], t[1], t[2]).draw(renderer, L.omega_i, ambient, diffuse);
 		}
 	}
 }
@@ -196,7 +196,7 @@ static void processTriangles(Renderer& renderer, const vec4& dir)
 	while ((process = queue.dequeue(data)) || !meshProcessed) // check for dequeue or mesh processed by meshProcess threads
 	{
 		if (process)
-			data.tri.drawIncremental(renderer, dir, data.a, data.d);
+			data.tri.draw(renderer, dir, data.a, data.d);
 	}
 }
 
@@ -235,5 +235,12 @@ static void renderSentinelQueue(const std::vector<Mesh*>& meshes, Renderer& rend
 
 	for (auto& t : triThreads)
 		t.join();
+}
+
+static void render(const std::vector<Mesh*>& meshes, Renderer& renderer, Light& L)
+{
+	renderCaching(meshes, renderer, L);
+	//renderSharedCounter(meshes, renderer, L,1);
+	//renderSentinelQueue(meshes, renderer, L);
 }
 

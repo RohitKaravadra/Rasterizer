@@ -57,7 +57,7 @@ void scene2() {
 			sphereStep *= -1.f;
 			if (++cycle % 2 == 0) {
 				end = std::chrono::high_resolution_clock::now();
-				std::cout << cycle / 2 << "\t" << std::chrono::duration<double, std::milli>(end - start).count() << "\n";
+				std::cout << std::chrono::duration<double, std::milli>(end - start).count() << "\n";
 				start = std::chrono::high_resolution_clock::now();
 			}
 		}
@@ -65,7 +65,7 @@ void scene2() {
 		// update view projection matrix before rendering
 		renderer.updateVP(camera);
 
-		renderCaching(scene, renderer, L);
+		render(scene, renderer, L);
 
 		renderer.present();
 	}

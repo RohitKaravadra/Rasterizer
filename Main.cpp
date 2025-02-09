@@ -7,9 +7,10 @@ void scene3();
 // No input variables
 int main() {
 	// Uncomment the desired scene function to run
-	//scene1();
+
+	scene1();
 	//scene2();
-	scene3();
+	//scene3();
 
 	return 0;
 }

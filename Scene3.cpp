@@ -65,7 +65,6 @@ void scene3() {
 		// Apply transformations to the camera
 		camera = matrix::makeTranslation(x, y, z);
 
-
 		// Rotate each cube in the grid
 		for (unsigned int i = 0; i < rotations.size(); i++)
 			scene[i]->world = scene[i]->world * matrix::makeRotateXYZ(rotations[i].x, rotations[i].y, rotations[i].z);
@@ -75,7 +74,7 @@ void scene3() {
 
 		timer.reset();
 
-		renderCaching(scene, renderer, L);
+		render(scene, renderer, L);
 
 		timer.elapsed();
 

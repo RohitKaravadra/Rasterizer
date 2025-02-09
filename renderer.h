@@ -16,13 +16,8 @@ class Renderer {
 	float f = 100.0f;							// Far clipping plane distance
 
 	matrix perspective;							// Perspective Projection matrix
-	Zbuffer<float> zbuffer;						// Z-buffer for depth management
-
-	std::mutex backBufferLock;
-	std::mutex zbufferLock;
+	ZbufferAtomic<float> zbuffer;						// Z-buffer for depth management
 public:
-	//Nbuffer<float, 4> nbuffer;				// normal buffer to store normals
-	//Nbuffer<float, 2> lbuffer;				// light buffer to store ambient and diffuse constants
 	GamesEngineeringBase::Window canvas;		// Canvas for rendering the scene
 	matrix vp;									// view projection matrix
 
@@ -56,7 +51,7 @@ public:
 	void drawAndSetDepth(const unsigned int& index, unsigned char* _color, const float& val)
 	{
 		zbuffer.set(index, val);
-		canvas.draw(index, _color);
+		canvas.drawCaching(index, _color);
 	}
 
 	float getDepth(const unsigned int& index) {
